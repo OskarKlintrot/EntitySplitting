@@ -32,6 +32,35 @@ using (var dbContext = new BloggingContext())
 {
     dbContext.Log = WriteLine;
 
+    dbContext.Blogs.Add(new Blog { Url = "https://blog2.google.com" });
+
+    await dbContext.SaveChangesAsync();
+}
+
+using (var dbContext = new BloggingContext())
+{
+    dbContext.Log = WriteLine;
+
+    dbContext.Posts.Add(new Post { Title = "Hello!", Content = "?world!" });
+
+    await dbContext.SaveChangesAsync();
+}
+
+using (var dbContext = new BloggingContext())
+{
+    dbContext.Log = WriteLine;
+
+    var post = await dbContext.Posts.LastAsync();
+
+    post.Blog = await dbContext.Blogs.LastAsync();
+
+    await dbContext.SaveChangesAsync();
+}
+
+using (var dbContext = new BloggingContext())
+{
+    dbContext.Log = WriteLine;
+
     var blog = await dbContext.Blogs.Include(x => x.Posts).SingleAsync();
 
     WriteLine($"Blog {blog.Url} contains {blog.Posts.Count} posts.");
