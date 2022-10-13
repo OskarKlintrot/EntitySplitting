@@ -1,5 +1,6 @@
 ﻿using EntitySplitting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using static EntitySplitting.DatabaseScript;
 
@@ -39,9 +40,14 @@ namespace EntitySplitting
         public DbSet<Post> Posts { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
-            optionsBuilder.UseSqlServer(
-                @"Server=(localdb)\mssqllocaldb;Database=EntitySplitting;Trusted_Connection=True;MultipleActiveResultSets=true"
-            );
+            optionsBuilder
+                .UseSqlServer(
+                    @"Server=(localdb)\mssqllocaldb;Database=EntitySplitting;Trusted_Connection=True;MultipleActiveResultSets=true"
+                )
+                .ConfigureWarnings(
+                    config =>
+                        config.Ignore(RelationalEventId.ForeignKeyPropertiesMappedToUnrelatedTables)
+                );
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -91,7 +97,7 @@ namespace EntitySplitting
             public void Configure(EntityTypeBuilder<Post> builder)
             {
                 builder.SplitToTable(
-                    "BlogPosts",
+                    "BlogPost",
                     tableBuilder =>
                     {
                         tableBuilder.Property(x => x.Id).HasColumnName("PostId");
