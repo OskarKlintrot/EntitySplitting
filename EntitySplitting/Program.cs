@@ -75,42 +75,31 @@ namespace EntitySplitting
         public string Url { get; set; } = null!;
 
         public virtual ICollection<Post> Posts { get; set; }
-
-        internal sealed class Configuration : IEntityTypeConfiguration<Blog>
-        {
-            public void Configure(EntityTypeBuilder<Blog> builder)
-            {
-                builder
-                    .HasMany(d => d.Posts)
-                    .WithMany(p => p.Blogs)
-                    .UsingEntity<Dictionary<string, object>>(
-                        "BlogPost",
-                        l => l.HasOne<Post>().WithMany().HasForeignKey("PostId"),
-                        r => r.HasOne<Blog>().WithMany().HasForeignKey("BlogId"),
-                        j =>
-                        {
-                            j.HasKey("BlogId", "PostId");
-
-                            j.ToTable("BlogPost");
-
-                            j.HasIndex(new[] { "PostId" }).IsUnique();
-                        }
-                    );
-            }
-        }
     }
 
     public class Post
     {
-        public Post()
-        {
-            Blogs = new HashSet<Blog>();
-        }
-
         public int Id { get; set; }
         public string Title { get; set; } = null!;
         public string Content { get; set; } = null!;
 
-        public virtual ICollection<Blog> Blogs { get; set; }
+        public int? BlogId { get; set; }
+        public virtual Blog? Blog { get; set; }
+
+        internal sealed class Configuration : IEntityTypeConfiguration<Post>
+        {
+            public void Configure(EntityTypeBuilder<Post> builder)
+            {
+                builder.SplitToTable(
+                    "BlogPosts",
+                    tableBuilder =>
+                    {
+                        tableBuilder.Property(x => x.Id).HasColumnName("PostId");
+
+                        tableBuilder.Property(x => x.BlogId);
+                    }
+                );
+            }
+        }
     }
 }
