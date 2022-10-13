@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
-using static EntitySplitting.DatabaseScript;
 using static System.Console;
 
 using (var dbContext = new BloggingContext())
@@ -69,14 +68,6 @@ namespace EntitySplitting
             await context.Database.EnsureDeletedAsync();
 
             await context.Database.MigrateAsync();
-
-            await context.Database.ExecuteSqlRawAsync(CreatePostTable);
-
-            await context.Database.ExecuteSqlRawAsync(CreateBlogTable);
-
-            await context.Database.ExecuteSqlRawAsync(CreateJoinTable);
-
-            await context.Database.ExecuteSqlRawAsync(AddConstraints);
         }
     }
 
