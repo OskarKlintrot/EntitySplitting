@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Logging;
 using static EntitySplitting.DatabaseScript;
+using static System.Console;
 
 using (var dbContext = new BloggingContext())
 {
@@ -11,6 +13,8 @@ using (var dbContext = new BloggingContext())
 
 using (var dbContext = new BloggingContext())
 {
+    dbContext.Log = WriteLine;
+
     dbContext.Blogs.Add(
         new Blog
         {
@@ -27,15 +31,20 @@ using (var dbContext = new BloggingContext())
 
 using (var dbContext = new BloggingContext())
 {
+    dbContext.Log = WriteLine;
+
     var blog = await dbContext.Blogs.Include(x => x.Posts).SingleAsync();
 
-    Console.WriteLine($"Blog {blog.Url} contains {blog.Posts.Count} posts.");
+    WriteLine($"Blog {blog.Url} contains {blog.Posts.Count} posts.");
 }
 
 namespace EntitySplitting
 {
     public class BloggingContext : DbContext
     {
+        public Action<string>? Log { get; set; }
+        public LogLevel LogLevel { get; set; } = LogLevel.Information;
+
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<Post> Posts { get; set; }
 
@@ -44,6 +53,7 @@ namespace EntitySplitting
                 .UseSqlServer(
                     @"Server=(localdb)\mssqllocaldb;Database=EntitySplitting;Trusted_Connection=True;MultipleActiveResultSets=true"
                 )
+                .LogTo(s => Log?.Invoke(s), LogLevel)
                 .ConfigureWarnings(
                     config =>
                         config.Ignore(RelationalEventId.ForeignKeyPropertiesMappedToUnrelatedTables)
